@@ -290,7 +290,7 @@
             text-underline-offset: 2px;
             max-width: 100%; 
             min-width: 0;
-            flex: 0 1 auto;
+            flex: 1 1 0;
         }
 
         .media-card__label {
@@ -299,7 +299,10 @@
             white-space: nowrap;
             font-size: .9em;
             overflow: hidden;
-            flex-shrink: 0;
+            // Keep the title's space even when a subtitle is longer than the card.
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 45%;
         }
         
         .media-card__icon {

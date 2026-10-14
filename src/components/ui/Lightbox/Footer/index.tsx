@@ -19,7 +19,12 @@ export const LightboxFooter: React.FC<LightboxFooterProps> = ({
   return (
     <>
       <div className="media-gallery-lightbox__footer-info">
-        <span className="media-gallery-lightbox__filename">{currentItem.filename}</span>
+        <span className="media-gallery-lightbox__filename">
+          {currentItem.title || currentItem.filename}
+        </span>
+        {currentItem.subtitle && (
+          <span className="media-gallery-lightbox__description">{currentItem.subtitle}</span>
+        )}
         {currentItem.alt && (
           <span className="media-gallery-lightbox__description">{currentItem.alt}</span>
         )}
@@ -99,7 +104,7 @@ const LightboxThumbnail = ({
         </div>
       ) : isImage ? (
         // biome-ignore lint: thumb
-        <img src={thumbUrl} alt={item.filename} />
+        <img src={thumbUrl} alt={item.alt ?? item.title ?? item.filename} />
       ) : (
         <div className="media-gallery-lightbox__thumbnail-fallback">
           <FileIcon />

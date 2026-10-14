@@ -29,11 +29,15 @@ async function start() {
 
   // Start Next.js
   console.log('🚀 Starting Next.js...')
-  // We use 'pnpm exec next dev dev' to ensure we use the project's next binary
-  const nextDev = spawn('pnpm', ['exec', 'next', 'dev', 'dev'], {
-    stdio: 'inherit',
-    env: { ...process.env, FORCE_COLOR: '1' },
-  })
+  // Use Node directly so the dev harness also works on Windows.
+  const nextDev = spawn(
+    process.execPath,
+    [path.resolve(dirname, '../node_modules/next/dist/bin/next'), 'dev', 'dev'],
+    {
+      stdio: 'inherit',
+      env: { ...process.env, FORCE_COLOR: '1' },
+    },
+  )
 
   // Cleanup on exit
   const cleanup = async (code: number | null) => {

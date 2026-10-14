@@ -18,6 +18,7 @@
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "isolatedModules": true,
+        "rewriteRelativeImportExtensions": true,
         "paths": {
             "@payload-config": [
                 "./dev/src/payload.config.ts"

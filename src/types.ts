@@ -1,13 +1,23 @@
 import type { ViewType } from './components/ui/Layouts/registry.js'
 
+/** Paths are relative to the source document and may contain dots (e.g. hero.image). */
+export interface CollectionGalleryOptions {
+  /** Text path, or a single relationship whose admin.useAsTitle supplies the label. */
+  titleField?: string
+  coverField?: string
+  /** Text path, or a single relationship whose admin.useAsTitle supplies the label. */
+  subtitleField?: string
+  altField?: string
+}
+
 export interface PluginOptions {
   /**
    * Collections to enable the gallery view for.
    * Can be an array of collection slugs, e.g. ['media']
-   * Or an object with collection slugs as keys and boolean true to enable.
+   * Or an object with collection slugs as keys and true or field mappings to enable.
    * Defaults to ['media']
    */
-  collections?: string[] | Partial<Record<string, true>>
+  collections?: string[] | Partial<Record<string, true | CollectionGalleryOptions>>
 
   /**
    * Whether the plugin is disabled or not.

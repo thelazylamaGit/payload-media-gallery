@@ -396,7 +396,7 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
               width={currentItem.width}
               height={currentItem.height}
               className="media-gallery-lightbox__image"
-              alt={currentItem.alt || currentItem.filename}
+              alt={currentItem.alt ?? currentItem.title ?? currentItem.filename}
               onLoad={() => setIsLoading(false)}
               onError={() => setIsLoading(false)}
               draggable={false}
@@ -422,7 +422,7 @@ export const Lightbox = ({ items, initialIndex, onClose, onEdit }: LightboxProps
               <FileIcon />
             </div>
             <div className="media-gallery-lightbox__document-details">
-              <h3>{currentItem.filename}</h3>
+              <h3>{currentItem.title || currentItem.filename}</h3>
               <a href={mediaUrl} download className="media-gallery-lightbox__download-link">
                 Download File
               </a>

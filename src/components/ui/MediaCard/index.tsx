@@ -35,6 +35,17 @@ export const MediaCard = memo(
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     const title = item.title || item.filename || 'Untitled'
+    const subtitle =
+      item.subtitle ??
+      (item.originalData?.folder?.name ||
+        (item.collection === 'media' && item.type === 'image'
+          ? undefined
+          : (item.type === 'image' && 'Image') ||
+            (item.type === 'video' && 'Video') ||
+            (item.type === 'audio' && 'Audio') ||
+            (item.type === 'document' && 'Doc') ||
+            collectionLabel ||
+            'Doc'))
     // Derived props that were passed to Card
     const previewUrl = useOriginal
       ? item.src
@@ -50,6 +61,11 @@ export const MediaCard = memo(
     const hasThumbnail = !!previewUrl
     const [isLoading, setIsLoading] = useState(!!(hasThumbnail || isVideo))
     const [isError, setIsError] = useState(false)
+
+    useEffect(() => {
+      setIsError(false)
+      setIsLoading(!!previewUrl)
+    }, [previewUrl])
 
     // Video handling logic
     const videoSrc = originalUrl || previewUrl
@@ -131,7 +147,7 @@ export const MediaCard = memo(
                   // biome-ignore lint: using standard img for external thumbnails
                   <img
                     src={previewUrl || ''}
-                    alt={title}
+                    alt={item.alt ?? title}
                     width={width}
                     height={height}
                     loading="lazy"
@@ -156,15 +172,11 @@ export const MediaCard = memo(
             <span className="media-card__filename" title={title}>
               {title}
             </span>
-            <span className="media-card__label">
-              {item.originalData?.folder?.name ||
-                (item.type === 'image' && 'Image') ||
-                (item.type === 'video' && 'Video') ||
-                (item.type === 'audio' && 'Audio') ||
-                (item.type === 'document' && 'Doc') ||
-                collectionLabel ||
-                'Doc'}
-            </span>
+            {subtitle && (
+              <span className="media-card__label" title={subtitle}>
+                {subtitle}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -276,7 +288,7 @@ export const MediaCard = memo(
               tooltip="Quick Edit"
             />
           )}
-          {onLightbox && lightboxEnabled && (
+          {onLightbox && lightboxEnabled && item.src && !isError && (
             <Button
               buttonStyle="icon-label"
               className="media-gallery-grid__expand-btn"

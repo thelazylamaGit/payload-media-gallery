@@ -12,19 +12,19 @@ import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ListViewIcon } from '../../icons'
-import { getMimeType, isAudioMime, isImageMime, isVideoMime } from '../../utils/media'
+import { type GalleryDocument, mapDocumentToMediaItem } from '../../utils/mapDocument'
 import type { ViewType } from '../ui/Layouts/registry'
 import { layoutRegistry } from '../ui/Layouts/registry'
 import { Lightbox } from '../ui/Lightbox'
-import type { LightboxItem } from '../ui/Lightbox/types'
 import { Selection } from '../ui/Selection'
 import { Toggle } from '../ui/Toggle'
 import type { MediaItem } from '../ui/types'
-import type { MediaGalleryProps, PayloadMediaDoc } from './types'
+import type { MediaGalleryProps } from './types'
 
 export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
   const router = useRouter()
   const { collectionConfig } = props
+  const slug = props.collectionSlug || collectionConfig?.slug || 'media'
   // Detect selection handler from context or props
   const { onSelect: contextOnSelect } = useListDrawerContext()
 
@@ -52,7 +52,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
         // Payload's context onSelect expects { collectionSlug, doc, docID }
         if (handler === contextOnSelect) {
           ;(handler as (args: { collectionSlug: string; doc: unknown; docID: string }) => void)({
-            collectionSlug: collectionConfig?.slug || 'media', // Use collectionConfig.slug here
+            collectionSlug: slug,
             doc: item.originalData,
             docID: String(item.id),
           })
@@ -61,45 +61,23 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
         }
       }
     }
-  }, [props, contextOnSelect, collectionConfig?.slug])
+  }, [props, contextOnSelect, slug])
 
-  const slug = collectionConfig?.slug || 'media'
   const PREFERENCE_KEY = `payload-${slug}-view`
 
   const { getPreference, setPreference } = usePreferences()
   const { data: listData } = useListQuery()
 
-  const galleryItems: MediaItem[] = useMemo(() => {
-    if (!listData?.docs) return []
-    return (listData.docs as unknown as PayloadMediaDoc[]).map((doc) => {
-      const mimeType = getMimeType(doc.filename, doc.mimeType)
-      let type: LightboxItem['type'] = 'document'
-
-      if (isImageMime(mimeType)) type = 'image'
-      else if (isVideoMime(mimeType)) type = 'video'
-      else if (isAudioMime(mimeType)) type = 'audio'
-
-      return {
-        id: doc.id,
-        title: doc.filename,
-        src: doc.url,
-        thumbnail: doc.sizes?.thumbnail?.url,
-        alt: doc.alt || doc.filename,
-        filename: doc.filename,
-        type,
-        mimeType,
-        width: doc.width,
-        height: doc.height,
-        focalX: doc.focalX,
-        focalY: doc.focalY,
-        href: `/admin/collections/${slug}/${doc.id}`,
-        sizes: doc.sizes,
-        originalData: doc,
-      }
-    })
-  }, [listData?.docs, slug])
-
   const { config } = useConfig()
+  const galleryItems: MediaItem[] = useMemo(() => {
+    return (
+      (listData?.docs as GalleryDocument[] | undefined)?.map((doc) =>
+        mapDocumentToMediaItem(doc, slug, props.collectionOptions, config.routes.admin),
+      ) || []
+    )
+  }, [listData?.docs, slug, props.collectionOptions, config.routes.admin])
+  const lightboxItems = useMemo(() => galleryItems.filter((item) => !!item.src), [galleryItems])
+
   const collectionLabel = useMemo(() => {
     const coll = config.collections.find((c) => c.slug === slug)
     return (coll as { labels?: { singular?: string } })?.labels?.singular || coll?.slug || 'Media'
@@ -245,7 +223,9 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
                 onLightbox={
                   props.lightbox !== false
                     ? (index) => {
-                        setLightboxIndex(index)
+                        const lightboxIndex = lightboxItems.indexOf(galleryItems[index])
+                        if (lightboxIndex < 0) return
+                        setLightboxIndex(lightboxIndex)
                         setLightboxOpen(true)
                       }
                     : undefined
@@ -262,13 +242,13 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
       />
       {props.lightbox !== false &&
         lightboxOpen &&
-        galleryItems.length > 0 &&
+        lightboxItems.length > 0 &&
         createPortal(
           <Lightbox
-            items={galleryItems}
+            items={lightboxItems}
             initialIndex={lightboxIndex ?? 0}
             onClose={() => setLightboxOpen(false)}
-            onEdit={(item) => handleQuickEdit(item.id)}
+            onEdit={props.edit !== false ? (item) => handleQuickEdit(item.id) : undefined}
           />,
           document.body,
         )}

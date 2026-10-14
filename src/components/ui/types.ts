@@ -1,6 +1,8 @@
 export interface MediaItem {
   id: string | number
   title?: string
+  subtitle?: string
+  collection?: string
   src: string
   thumbnail?: string
   alt?: string

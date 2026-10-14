@@ -70,6 +70,16 @@ const buildConfigWithMemoryDB = async () => {
         fields: [{ name: 'alt', type: 'text' }],
       },
       {
+        slug: 'practitioners',
+        orderable: true,
+        admin: { useAsTitle: 'name', defaultColumns: ['name'], enableListViewSelectAPI: true },
+        fields: [
+          { name: 'name', type: 'text', required: true },
+          { name: 'specialty', type: 'text' },
+          { name: 'portrait', type: 'upload', relationTo: 'media' },
+        ],
+      },
+      {
         slug: 'posts',
         admin: {
           useAsTitle: 'title',
@@ -79,6 +89,11 @@ const buildConfigWithMemoryDB = async () => {
           drafts: true,
         },
         fields: [
+          {
+            name: 'hero',
+            type: 'group',
+            fields: [{ name: 'image', type: 'upload', relationTo: 'media' }],
+          },
           {
             name: 'title',
             type: 'text',
@@ -168,6 +183,8 @@ const buildConfigWithMemoryDB = async () => {
       mediaGalleryPlugin({
         collections: {
           media: true,
+          practitioners: { titleField: 'name', coverField: 'portrait', subtitleField: 'specialty' },
+          posts: { titleField: 'title', coverField: 'hero.image' },
         },
         defaultView: 'justified', // 'justified' | 'masonry' | 'grid' | 'list'
         layouts: {

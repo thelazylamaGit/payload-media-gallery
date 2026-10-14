@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+
 export default defineConfig({
   testDir: './dev',
   testMatch: '**/e2e.test.{ts,js}',
@@ -15,13 +17,13 @@ export default defineConfig({
     },
   ],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     trace: 'on-first-retry',
   },
   webServer: {
     command: 'pnpm dev',
     reuseExistingServer: true,
-    url: 'http://localhost:3000/admin',
+    url: `${baseURL}/admin`,
     timeout: 120 * 1000,
   },
 })

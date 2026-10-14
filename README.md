@@ -29,6 +29,15 @@ export default buildConfig({
     mediaGalleryPlugin({
       collections: {
         media: true,
+        practitioners: {
+          titleField: 'name',
+          coverField: 'portrait',
+          subtitleField: 'specialty',
+        },
+        posts: {
+          titleField: 'title',
+          coverField: 'hero.image',
+        },
       },
       defaultView: 'justified', // 'justified' | 'masonry' | 'grid' | 'list'
       layouts: {
@@ -63,8 +72,82 @@ export default buildConfig({
 | `edit` | `boolean` | `true` | Whether to enable the quick edit button. |
 | `disabled` | `boolean` | `false` | Whether to disable the plugin. |
 
+## Collection card fields
+
+`collections: ['media']` and `collections: { media: true }` continue to use the upload
+document's filename, URL, alt text and media metadata. An options object enables
+field mappings for an ordinary collection (or overrides fields on an upload collection).
+The exported `CollectionGalleryOptions` type describes these serializable options:
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `titleField` | `string` | Cover/upload filename | Text path or single relationship used for card and lightbox titles. Missing configured titles display `Untitled`. |
+| `coverField` | `string` | Source upload document | Single upload relationship, populated upload document, or image URL field. |
+| `subtitleField` | `string` | None | Text shown beside the title, or a single relationship's display field. Long subtitles truncate on cards; full text is available on hover and in the lightbox. |
+| `altField` | `string` | Cover/upload alt text, then title | Source text field used for image alt text. Missing configured alt text falls back to the title. |
+
+Paths are relative to the **source document** and support nested groups and named tabs,
+for example `hero.image` or `profile.name`. Covers may be a single `upload` field or
+a single non-polymorphic `relationship` to an upload collection. Direct image URLs
+must start with `http://`, `https://`, or `/`; they do not provide upload sizes,
+dimensions or focal points. Related uploads supply those values when available,
+including `sizes.thumbnail` for card previews.
+
+For a single relationship title or subtitle, `titleField: 'modality'` or
+`subtitleField: 'modality'` uses the related
+collection's `admin.useAsTitle` (or `id` if unset). Use `subtitleField: 'modality.name'`
+to choose a label explicitly, including a nested text path such as `modality.details.label`.
+The relationship and label are selected and populated independently of visible columns
+and cover type, through Payload's native batched reads. Collection and field access
+still apply. The label must be text; multiple relationships and relationship chains
+are not supported.
+
+The source ID and collection are used for edit links, quick edit, bulk selection,
+list drawers and ordering. A cover never replaces the source document's identity.
+Missing, deleted, inaccessible or unresolved covers display a placeholder with safe
+layout dimensions and have no lightbox action. Failed card previews also hide that action.
+
+### List loading and access
+
+Payload 3.90.2's native list and list drawer reads use `depth: 0` and select visible
+columns. The plugin merges mapped fields (and `_order` for orderable collections)
+into `forceSelect`. This also affects other inclusion-select queries on the configured
+collection; it does not bypass field access. For native reads with `includeLockStatus: true`,
+the plugin raises depth to at least one and selects upload metadata and related subtitle labels through `populate`.
+Payload's request dataloader batches related uploads, with the original request's access,
+locale and draft settings. No browser fetch is added per card. Queries without lock status
+keep their original depth, so an ID-only cover passed outside the list remains a placeholder.
+
+Native relationship cells expect IDs, so list responses retain those IDs and carry
+authorized gallery preview metadata separately in `__mediaGallery`. This is response-only
+data: the plugin does not add database fields, run migrations, or write documents.
+
+Search, filters, sorting, pagination, column preferences and view preferences remain
+managed by Payload's native list. Existing collection hooks and forced selections are retained.
+Field `maxDepth: 0` and access restrictions are respected, and can prevent a cover from resolving.
+
+### Limitations and validation
+
+One cover per document is supported. Arrays, blocks, polymorphic relationships,
+multiple-image galleries and arbitrary rendering callbacks are out of scope. Mapping
+paths do not traverse arrays or follow chains of relationships. A subtitle may traverse
+one single relationship. Titles and subtitles may traverse one single relationship. Folder and grouped list
+views remain outside the supported gallery scope.
+
+The dev app includes `practitioners` with a hidden portrait column and a placeholder
+document, and `posts` with a nested `hero.image` cover. Focused tests can be run with:
+
+```sh
+pnpm exec vitest run dev/plugin.spec.ts dev/gallery.spec.ts dev/gallery-payload.spec.ts
+pnpm test:e2e
+pnpm build
+```
+
+The integration suite starts its own temporary MongoDB instance (first run downloads
+the MongoDB binary) and verifies native list selection, batched population, access,
+sorting, pagination and source identity on Payload 3.90.2.
 
 > ### **⚠️ Experimental**
 > An "as-is" personal concept for Payload CMS. Maintenance is not guaranteed.
 > * **Scope:** Works in **"All Media"** view; unsupported in **Folders**.
-> * **Tested:** Payload 3.73.0 | Next.js 16.1.4 | React 19.2.3
+> * **Tested:** Payload 3.90.2 | Next.js 16.3.3 | React 19.2.3

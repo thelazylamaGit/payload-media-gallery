@@ -37,6 +37,7 @@ export interface MediaGalleryProps extends Record<string, unknown>, ListViewClie
    * Whether to enable quick edit.
    */
   edit?: boolean
+  collectionOptions?: import('../../types').CollectionGalleryOptions
 }
 
 export interface PayloadMediaDoc {

@@ -74,5 +74,26 @@ export const seed = async (payload: Payload): Promise<void> => {
     payload.logger.info('Media seeded')
   }
 
+  const existingPractitioners = await payload.find({ collection: 'practitioners', limit: 1 })
+  if (existingPractitioners.docs.length === 0) {
+    const images = await payload.find({
+      collection: 'media',
+      where: { mimeType: { contains: 'image/' } },
+      limit: 1,
+    })
+    await payload.create({
+      collection: 'practitioners',
+      data: {
+        name: 'Dr Jane',
+        specialty: 'Dentistry',
+        portrait: images.docs[0]?.id,
+      },
+    })
+    await payload.create({
+      collection: 'practitioners',
+      data: { name: 'Dr Placeholder', specialty: 'General practice' },
+    })
+  }
+
   payload.logger.info('Seeding complete')
 }
