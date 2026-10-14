@@ -146,12 +146,14 @@ describe('collection configuration', () => {
   })
   it('preserves false through client props without selecting or populating a subtitle field', async () => {
     const result = await mediaGalleryPlugin({
-      collections: { posts: { titleField: 'title', subtitleField: false } },
+      collections: { posts: { titleField: 'title', subtitleField: false, alwaysShowTitle: true } },
     })(config)
     expect(result.collections?.[1].forceSelect).toEqual({ slug: true, title: true })
     expect(
       JSON.parse(JSON.stringify(result.collections?.[1].admin?.components?.views?.list?.Component)),
-    ).toMatchObject({ clientProps: { collectionOptions: { subtitleField: false } } })
+    ).toMatchObject({
+      clientProps: { collectionOptions: { subtitleField: false, alwaysShowTitle: true } },
+    })
     expect(galleryFieldPaths([], { subtitleField: false })).toEqual([])
     expect(resolveGalleryOptions([], { subtitleField: false }, []).subtitleField).toBe(false)
   })

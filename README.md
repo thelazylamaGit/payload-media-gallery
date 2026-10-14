@@ -84,6 +84,7 @@ The exported `CollectionGalleryOptions` type describes these serializable option
 | `titleField` | `string` | Cover/upload filename | Text path or single relationship used for card and lightbox titles. Missing configured titles display `Untitled`. |
 | `coverField` | `string` | Source upload document | Single upload relationship, populated upload document, or image URL field. |
 | `subtitleField` | `string \| false` | Existing fallback label | Text path or a single relationship's display field. `false` hides both custom subtitles and fallback labels. Long subtitles truncate on cards; full text is available on hover and in the lightbox. |
+| `alwaysShowTitle` | `boolean` | `false` | Keep the title area (including any subtitle) visible in all gallery layouts. Underlines and edit controls still reveal on hover. Applies only to the configured collection. |
 | `altField` | `string` | Cover/upload alt text, then title | Source text field used for image alt text. Missing configured alt text falls back to the title. |
 
 Paths are relative to the **source document** and support nested groups and named tabs,
@@ -112,6 +113,21 @@ stylesheet. These optional CSS variables adjust contrast without changing the de
 
 The example uses an opaque footer background. You can also target `.media-card__label`
 directly to customize its font, weight, or other text styles.
+
+To keep the title area visible for a specific collection while retaining hover actions:
+
+```ts
+practitioners: {
+  titleField: 'name',
+  coverField: 'portrait',
+  subtitleField: false,
+  alwaysShowTitle: true,
+}
+```
+
+The option overrides a layout's `footer: 'hover'` for that collection. The underline
+appears on hover or keyboard focus; edit, expand and selection controls retain their
+existing behavior. Omit the option to keep the current layout behavior.
 
 For a single relationship title or subtitle, `titleField: 'modality'` or
 `subtitleField: 'modality'` uses the related

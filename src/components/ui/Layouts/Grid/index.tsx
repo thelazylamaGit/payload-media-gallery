@@ -16,6 +16,7 @@ export const Grid = ({
   onLightbox,
   handleSelection,
   footer,
+  alwaysShowTitle,
   collectionLabel,
   collectionSlug,
 }: GridProps) => {
@@ -83,6 +84,7 @@ export const Grid = ({
             {...getItemProps(item, i)}
             item={item}
             footer={footer}
+            alwaysShowTitle={alwaysShowTitle}
             collectionLabel={collectionLabel}
             lightboxEnabled={!!onLightbox}
             // Pass drag handle capability if enabled

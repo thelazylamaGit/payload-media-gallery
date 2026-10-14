@@ -405,3 +405,22 @@
         transform: translateY(0) !important;
     }
 }
+
+// Per-collection title visibility leaves the existing hover controls untouched.
+.media-card--title-visible {
+    .media-card__footer {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .media-card__filename {
+        text-decoration-color: transparent;
+        transition: text-decoration-color 0.2s ease;
+    }
+}
+
+.media-gallery-grid__item-wrapper:is(:hover, :focus-within, [aria-selected='true']) {
+    .media-card--title-visible .media-card__filename {
+        text-decoration-color: currentColor;
+    }
+}

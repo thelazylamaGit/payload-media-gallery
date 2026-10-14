@@ -8,6 +8,8 @@ export interface CollectionGalleryOptions {
   /** Text/relationship path; false hides the subtitle and all fallback labels. Omit to retain defaults. */
   subtitleField?: string | false
   altField?: string
+  /** Keep the card title area visible while underline and action controls reveal on hover. */
+  alwaysShowTitle?: boolean
 }
 
 export interface PluginOptions {

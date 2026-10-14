@@ -24,6 +24,7 @@ test('should navigate to media collection', async ({ page }) => {
   const toggleButtons = page.locator('button.media-gallery-toggle')
   await expect(toggleButtons.first()).toBeVisible()
   await expect(toggleButtons).toHaveCount(4)
+  await expect(page.locator('.media-card--title-visible')).toHaveCount(0)
   await expect(page.locator('.media-card__label', { hasText: /^Image$/ })).toHaveCount(0)
   await expect(page.locator('.media-card__label', { hasText: /^Video$/ })).toHaveCount(1)
   await expect(page.locator('.media-card__label', { hasText: /^Audio$/ })).toHaveCount(1)
@@ -41,6 +42,22 @@ test('ordinary collection cards retain source identity and show configured field
 
   const jane = page.getByRole('gridcell', { name: 'Dr Jane', exact: true })
   await expect(jane).toBeVisible()
+  for (const layout of ['Justified', 'Grid', 'Masonry']) {
+    await page.getByRole('button', { name: `Switch to ${layout} view` }).click()
+    await page.mouse.move(0, 0)
+    await expect(jane.locator('.media-card__footer')).toHaveCSS('opacity', '1')
+    await expect(jane.locator('.media-card__filename')).toHaveCSS(
+      'text-decoration-color',
+      'rgba(0, 0, 0, 0)',
+    )
+    await expect(jane.locator('.media-gallery-grid__controls')).toHaveCSS('visibility', 'hidden')
+    await jane.hover()
+    await expect(jane.locator('.media-card__filename')).not.toHaveCSS(
+      'text-decoration-color',
+      'rgba(0, 0, 0, 0)',
+    )
+    await expect(jane.locator('.media-gallery-grid__controls')).toHaveCSS('visibility', 'visible')
+  }
   await expect(jane.locator('.media-card__label')).toHaveText('Dentistry')
   await expect(jane.locator('img')).toHaveAttribute('alt', /Seed Image/)
   const sourceHref = await jane.locator('a').getAttribute('href')

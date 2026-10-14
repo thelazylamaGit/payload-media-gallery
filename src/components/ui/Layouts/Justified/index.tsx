@@ -18,6 +18,7 @@ export const Justified = ({
   onLightbox,
   handleSelection,
   footer,
+  alwaysShowTitle,
   collectionLabel,
   collectionSlug,
 }: JustifiedProps) => {
@@ -241,6 +242,7 @@ export const Justified = ({
                 {...getItemProps(item, index)}
                 item={item}
                 footer={footer}
+                alwaysShowTitle={alwaysShowTitle}
                 collectionLabel={collectionLabel}
                 lightboxEnabled={!!onLightbox}
               />

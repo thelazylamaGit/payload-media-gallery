@@ -232,6 +232,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
                 }
                 handleSelection={resolvedSelectionHandler}
                 footer={availableViews.find((v) => v.slug === viewType)?.footer}
+                alwaysShowTitle={props.collectionOptions?.alwaysShowTitle}
                 collectionLabel={collectionLabel}
                 collectionSlug={slug}
               />

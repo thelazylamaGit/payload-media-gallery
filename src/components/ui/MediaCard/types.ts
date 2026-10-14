@@ -15,6 +15,7 @@ export interface ItemProps {
   onFocus: (index: number) => void
   handleSelection?: (item: MediaItem) => void
   useOriginal?: boolean
+  alwaysShowTitle?: boolean
   variant?: 'default' | 'overlay'
   className?: string
   collectionLabel?: string

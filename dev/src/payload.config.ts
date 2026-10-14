@@ -183,7 +183,12 @@ const buildConfigWithMemoryDB = async () => {
       mediaGalleryPlugin({
         collections: {
           media: true,
-          practitioners: { titleField: 'name', coverField: 'portrait', subtitleField: 'specialty' },
+          practitioners: {
+            titleField: 'name',
+            coverField: 'portrait',
+            subtitleField: 'specialty',
+            alwaysShowTitle: true,
+          },
           posts: { titleField: 'title', coverField: 'hero.image' },
         },
         defaultView: 'justified', // 'justified' | 'masonry' | 'grid' | 'list'

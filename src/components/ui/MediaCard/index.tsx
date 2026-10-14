@@ -23,6 +23,7 @@ export const MediaCard = memo(
     handleSelection,
     useOriginal,
     footer = 'always',
+    alwaysShowTitle = false,
     className,
     collectionLabel,
     lightboxEnabled = true,
@@ -118,7 +119,7 @@ export const MediaCard = memo(
     const CardContent = (
       <div className="media-gallery-item__card-wrapper">
         <div
-          className={`draggable-with-click media-card media-card--file ${isSelected ? 'media-card--selected' : ''} ${footer === 'hover' ? 'media-card--overlay' : ''} ${item.type === 'document' || item.type === 'audio' ? 'media-card--show-footer' : ''}`}
+          className={`draggable-with-click media-card media-card--file ${isSelected ? 'media-card--selected' : ''} ${footer === 'hover' ? 'media-card--overlay' : ''} ${alwaysShowTitle ? 'media-card--title-visible' : ''} ${item.type === 'document' || item.type === 'audio' ? 'media-card--show-footer' : ''}`}
         >
           <div className="media-card__preview">
             {!isError && (hasThumbnail || isVideo) ? (

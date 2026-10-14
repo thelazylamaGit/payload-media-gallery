@@ -17,6 +17,7 @@ export const Masonry = ({
   onLightbox,
   handleSelection,
   footer,
+  alwaysShowTitle,
   collectionLabel,
   collectionSlug,
 }: MasonryProps) => {
@@ -118,6 +119,7 @@ export const Masonry = ({
                 {...getItemProps(item, index)}
                 item={item}
                 footer={footer}
+                alwaysShowTitle={alwaysShowTitle}
                 collectionLabel={collectionLabel}
                 lightboxEnabled={!!onLightbox}
                 className="masonry-item"
