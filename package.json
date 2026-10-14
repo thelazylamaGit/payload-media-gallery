@@ -6,42 +6,28 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sitebytom/payload-media-gallery"
+    "url": "https://github.com/thelazylamaGit/payload-media-gallery.git"
   },
-  "homepage": "https://github.com/sitebytom/payload-media-gallery#readme",
+  "homepage": "https://github.com/thelazylamaGit/payload-media-gallery#readme",
   "bugs": {
-    "url": "https://github.com/sitebytom/payload-media-gallery/issues"
+    "url": "https://github.com/thelazylamaGit/payload-media-gallery/issues"
   },
   "description": "A Payload CMS 3 plugin that enhances the Media List View with Grid, Masonry, and Lightbox views, including video previews.",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./client": {
-      "types": "./src/components/MediaGallery/index.tsx",
-      "import": "./src/components/MediaGallery/index.tsx",
-      "default": "./src/components/MediaGallery/index.tsx"
+      "types": "./dist/components/MediaGallery/index.d.ts",
+      "import": "./dist/components/MediaGallery/index.js",
+      "default": "./dist/components/MediaGallery/index.js"
     }
   },
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "publishConfig": {
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.js",
-        "default": "./dist/index.js"
-      },
-      "./client": {
-        "types": "./dist/components/MediaGallery/index.d.ts",
-        "import": "./dist/components/MediaGallery/index.js",
-        "default": "./dist/components/MediaGallery/index.js"
-      }
-    },
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
@@ -49,6 +35,7 @@
     "dist"
   ],
   "scripts": {
+    "prepare": "pnpm build",
     "build": "pnpm copyfiles && tsc",
     "dev": "tsx dev/server.ts",
     "copyfiles": "copyfiles -u 1 \"src/**/*.{html,css,scss,ttf,woff,woff2,eot,svg,jpg,png,json}\" dist/",
