@@ -129,6 +129,11 @@ The option overrides a layout's `footer: 'hover'` for that collection. The under
 appears on hover or keyboard focus; edit, expand and selection controls retain their
 existing behavior. Omit the option to keep the current layout behavior.
 
+Masonry places each next card in the shortest column using preview dimensions.
+It preserves full image proportions: a 440×2000 image is about 4.55 times the column
+width in height. Balancing reduces long uneven column tails, but an unusually tall
+image can still extend below its neighbors. Unknown dimensions use a square estimate.
+
 For a single relationship title or subtitle, `titleField: 'modality'` or
 `subtitleField: 'modality'` uses the related
 collection's `admin.useAsTitle` (or `id` if unset). Use `subtitleField: 'modality.name'`

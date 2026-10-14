@@ -2,12 +2,12 @@ import { closestCenter, DndContext } from '@dnd-kit/core'
 import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import { useConfig } from '@payloadcms/ui'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { buildMasonryColumns, masonryNeighbor } from '../../../../utils/masonry.ts'
 import { useGalleryManager } from '../../hooks/useGalleryManager'
 import { useGalleryOrder } from '../../hooks/useGalleryOrder'
 import { MediaCard } from '../../MediaCard'
 import { MarqueeBox } from '../../Selection/MarqueeBox'
 import { SortableItem } from '../../Sortable/SortableItem'
-import type { MediaItem } from '../../types'
 import type { MasonryProps } from './types'
 import './index.scss'
 
@@ -23,6 +23,7 @@ export const Masonry = ({
 }: MasonryProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const [columnCount, setColumnCount] = useState(1)
+  const [containerWidth, setContainerWidth] = useState(0)
   const { config } = useConfig()
 
   const collectionConfig = config.collections.find((c) => c.slug === collectionSlug)
@@ -53,6 +54,7 @@ export const Masonry = ({
     const updateColumns = () => {
       if (!containerRef.current) return
       const width = containerRef.current.offsetWidth
+      setContainerWidth(width)
       if (width < 600) setColumnCount(1)
       else if (width < 900) setColumnCount(2)
       else if (width < 1200) setColumnCount(3)
@@ -67,33 +69,20 @@ export const Masonry = ({
     return () => observer.disconnect()
   }, [])
 
-  // Distribute items into columns (LTR order: index % colCount)
-  const columns = useMemo(() => {
-    const cols: MediaItem[][] = Array.from({ length: columnCount }, () => [])
-    items.forEach((item, index) => {
-      cols[index % columnCount].push(item)
-    })
-    return cols
-  }, [items, columnCount])
+  const columns = useMemo(
+    () =>
+      buildMasonryColumns(
+        items,
+        columnCount,
+        Math.max(1, (containerWidth - (columnCount - 1) * 4) / columnCount),
+        4,
+      ),
+    [items, columnCount, containerWidth],
+  )
 
   const calculateNextIndex = useCallback(
-    (current: number, key: string, total: number) => {
-      const cols = columnCount
-
-      switch (key) {
-        case 'ArrowRight':
-          return Math.min(total - 1, current + 1)
-        case 'ArrowLeft':
-          return Math.max(0, current - 1)
-        case 'ArrowDown':
-          return Math.min(total - 1, current + cols)
-        case 'ArrowUp':
-          return Math.max(0, current - cols)
-        default:
-          return current
-      }
-    },
-    [columnCount],
+    (current: number, key: string) => masonryNeighbor(columns, current, key),
+    [columns],
   )
 
   const { getItemProps, marquee } = useGalleryManager({
@@ -111,8 +100,7 @@ export const Masonry = ({
       <MarqueeBox marquee={marquee} />
       {columns.map((colItems, colIndex) => (
         <div key={colIndex} className="media-gallery-masonry__column">
-          {colItems.map((item) => {
-            const index = items.indexOf(item)
+          {colItems.map(({ item, index }) => {
             const card = (
               <MediaCard
                 key={item.id}
