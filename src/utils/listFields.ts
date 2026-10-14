@@ -90,7 +90,9 @@ export function resolveGalleryOptions(
 ): CollectionGalleryOptions {
   const resolved = { ...options }
   for (const key of ['titleField', 'subtitleField'] as const) {
-    const relation = relationshipAtPath(fields, options[key])
+    const path = options[key]
+    if (typeof path !== 'string') continue
+    const relation = relationshipAtPath(fields, path)
     if (!relation || relation.relativePath) continue
     const label =
       collections.find((collection) => collection.slug === relation.target)?.admin?.useAsTitle ||
@@ -104,7 +106,9 @@ export function galleryFieldPaths(
   fields: Field[],
   options: CollectionGalleryOptions,
 ): (string | undefined)[] {
-  return Object.values(options).map((path) => relationshipAtPath(fields, path)?.sourcePath ?? path)
+  return Object.values(options)
+    .filter((path): path is string => typeof path === 'string')
+    .map((path) => relationshipAtPath(fields, path)?.sourcePath ?? path)
 }
 
 function includedFields(select?: object): SelectIncludeType {
@@ -137,6 +141,7 @@ export function galleryListHook(
       ? cover.relationTo
       : undefined
   const labels = [options.titleField, options.subtitleField]
+    .filter((path): path is string => typeof path === 'string')
     .map((path) => relationshipAtPath(fields, path))
     .filter((relation) => !!relation?.relativePath)
   return ({ args, operation }) => {

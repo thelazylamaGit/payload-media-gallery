@@ -24,6 +24,13 @@ const options = {
 }
 
 describe('document mapper', () => {
+  it('distinguishes an explicitly disabled subtitle from default fallback behavior', () => {
+    const disabled = mapDocumentToMediaItem(upload, 'photos', { subtitleField: false })
+    expect(disabled.subtitle).toBeNull()
+    expect(mapDocumentToMediaItem(upload, 'photos').subtitle).toBeUndefined()
+    expect(disabled.title).toBe(upload.filename)
+    expect(disabled.src).toBe(upload.url)
+  })
   it('overrides an upload title while retaining its cover and leaving the subtitle optional', () => {
     const doc = { ...upload, title: 'Custom image title' }
     const item = mapDocumentToMediaItem(doc, 'media', { titleField: 'title' })
@@ -136,6 +143,17 @@ describe('collection configuration', () => {
   })
   it('does not narrow an existing parent selection', () => {
     expect(selectPaths(['hero.image'], { hero: true })).toEqual({ hero: true })
+  })
+  it('preserves false through client props without selecting or populating a subtitle field', async () => {
+    const result = await mediaGalleryPlugin({
+      collections: { posts: { titleField: 'title', subtitleField: false } },
+    })(config)
+    expect(result.collections?.[1].forceSelect).toEqual({ slug: true, title: true })
+    expect(
+      JSON.parse(JSON.stringify(result.collections?.[1].admin?.components?.views?.list?.Component)),
+    ).toMatchObject({ clientProps: { collectionOptions: { subtitleField: false } } })
+    expect(galleryFieldPaths([], { subtitleField: false })).toEqual([])
+    expect(resolveGalleryOptions([], { subtitleField: false }, []).subtitleField).toBe(false)
   })
   it('infers a relationship subtitle and selects the source relationship rather than a nested database field', () => {
     const fields: import('payload').Field[] = [

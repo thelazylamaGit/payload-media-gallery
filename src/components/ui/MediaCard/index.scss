@@ -260,7 +260,7 @@
         box-sizing: border-box; 
         padding: calc(var(--base) * .5) calc(var(--base) * .75);
         
-        background: color-mix(in oklab, var(--theme-elevation-50) 55%, transparent);
+        background: var(--media-gallery-footer-background, color-mix(in oklab, var(--theme-elevation-50) 55%, transparent));
         backdrop-filter: saturate(1.2) blur(8px);
         
         z-index: 10;
@@ -275,7 +275,7 @@
                     transform 0.25s cubic-bezier(0.19, 1, 0.22, 1);
 
         [data-theme='dark'] & {
-            background: color-mix(in oklab, var(--theme-elevation-50) 55%, transparent);
+            background: var(--media-gallery-footer-background, color-mix(in oklab, var(--theme-elevation-50) 55%, transparent));
         }
         
         .media-card__filename {
@@ -294,7 +294,7 @@
         }
 
         .media-card__label {
-            color: var(--theme-elevation-500);
+            color: var(--media-gallery-subtitle-color, var(--theme-elevation-500));
             text-overflow: ellipsis;
             white-space: nowrap;
             font-size: .9em;
@@ -343,7 +343,7 @@
             opacity: 1 !important;
             transform: translateY(0) !important;
             border-top: 1px solid var(--card-border-color);
-            background: color-mix(in oklab, var(--card-bg-color) 85%, transparent);
+            background: var(--media-gallery-footer-background, color-mix(in oklab, var(--card-bg-color) 85%, transparent));
             backdrop-filter: saturate(1.2) blur(8px);
             z-index: 3;
 
@@ -351,7 +351,7 @@
                 color: var(--card-titlebar-icon-color);
             }
             .media-card__label {
-                color: var(--card-label-color);
+                color: var(--media-gallery-subtitle-color, var(--card-label-color));
             }
         }
         

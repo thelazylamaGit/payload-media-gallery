@@ -1,7 +1,8 @@
 export interface MediaItem {
   id: string | number
   title?: string
-  subtitle?: string
+  /** null explicitly disables the subtitle; undefined retains the card's fallback label. */
+  subtitle?: string | null
   collection?: string
   src: string
   thumbnail?: string

@@ -36,16 +36,18 @@ export const MediaCard = memo(
 
     const title = item.title || item.filename || 'Untitled'
     const subtitle =
-      item.subtitle ??
-      (item.originalData?.folder?.name ||
-        (item.collection === 'media' && item.type === 'image'
-          ? undefined
-          : (item.type === 'image' && 'Image') ||
-            (item.type === 'video' && 'Video') ||
-            (item.type === 'audio' && 'Audio') ||
-            (item.type === 'document' && 'Doc') ||
-            collectionLabel ||
-            'Doc'))
+      item.subtitle === null
+        ? undefined
+        : (item.subtitle ??
+          (item.originalData?.folder?.name ||
+            (item.collection === 'media' && item.type === 'image'
+              ? undefined
+              : (item.type === 'image' && 'Image') ||
+                (item.type === 'video' && 'Video') ||
+                (item.type === 'audio' && 'Audio') ||
+                (item.type === 'document' && 'Doc') ||
+                collectionLabel ||
+                'Doc')))
     // Derived props that were passed to Card
     const previewUrl = useOriginal
       ? item.src

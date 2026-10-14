@@ -5,8 +5,8 @@ export interface CollectionGalleryOptions {
   /** Text path, or a single relationship whose admin.useAsTitle supplies the label. */
   titleField?: string
   coverField?: string
-  /** Text path, or a single relationship whose admin.useAsTitle supplies the label. */
-  subtitleField?: string
+  /** Text/relationship path; false hides the subtitle and all fallback labels. Omit to retain defaults. */
+  subtitleField?: string | false
   altField?: string
 }
 

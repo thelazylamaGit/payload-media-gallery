@@ -83,7 +83,7 @@ The exported `CollectionGalleryOptions` type describes these serializable option
 | :--- | :--- | :--- | :--- |
 | `titleField` | `string` | Cover/upload filename | Text path or single relationship used for card and lightbox titles. Missing configured titles display `Untitled`. |
 | `coverField` | `string` | Source upload document | Single upload relationship, populated upload document, or image URL field. |
-| `subtitleField` | `string` | None | Text shown beside the title, or a single relationship's display field. Long subtitles truncate on cards; full text is available on hover and in the lightbox. |
+| `subtitleField` | `string \| false` | Existing fallback label | Text path or a single relationship's display field. `false` hides both custom subtitles and fallback labels. Long subtitles truncate on cards; full text is available on hover and in the lightbox. |
 | `altField` | `string` | Cover/upload alt text, then title | Source text field used for image alt text. Missing configured alt text falls back to the title. |
 
 Paths are relative to the **source document** and support nested groups and named tabs,
@@ -92,6 +92,26 @@ a single non-polymorphic `relationship` to an upload collection. Direct image UR
 must start with `http://`, `https://`, or `/`; they do not provide upload sizes,
 dimensions or focal points. Related uploads supply those values when available,
 including `sizes.thumbnail` for card previews.
+
+Omitting `subtitleField` retains the existing fallback behavior. Set `subtitleField: false`
+to give the title the full footer width:
+
+```ts
+practitioners: { titleField: 'name', coverField: 'portrait', subtitleField: false }
+```
+
+Card subtitles use `.media-card__label` and can be styled in your project's admin
+stylesheet. These optional CSS variables adjust contrast without changing the defaults:
+
+```css
+.media-card {
+  --media-gallery-subtitle-color: var(--theme-text);
+  --media-gallery-footer-background: var(--theme-elevation-50);
+}
+```
+
+The example uses an opaque footer background. You can also target `.media-card__label`
+directly to customize its font, weight, or other text styles.
 
 For a single relationship title or subtitle, `titleField: 'modality'` or
 `subtitleField: 'modality'` uses the related

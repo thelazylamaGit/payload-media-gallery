@@ -38,7 +38,11 @@ export function mapDocumentToMediaItem(
     preview.collection === collection &&
     typeof preview.src === 'string'
   ) {
-    return { ...preview, originalData: doc }
+    return {
+      ...preview,
+      subtitle: options.subtitleField === false ? null : preview.subtitle,
+      originalData: doc,
+    }
   }
   const cover = options.coverField ? getFieldValue(doc, options.coverField) : doc
   const upload =
@@ -60,7 +64,8 @@ export function mapDocumentToMediaItem(
     id: doc.id,
     collection,
     title,
-    subtitle: text(getFieldValue(doc, options.subtitleField)),
+    subtitle:
+      options.subtitleField === false ? null : text(getFieldValue(doc, options.subtitleField)),
     src,
     thumbnail: text(getFieldValue(upload, 'sizes.thumbnail.url')),
     alt: options.altField
