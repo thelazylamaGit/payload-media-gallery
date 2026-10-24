@@ -1,4 +1,4 @@
-import { useSelection } from '@payloadcms/ui'
+import { useRouteTransition, useSelection } from '@payloadcms/ui'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
@@ -28,6 +28,7 @@ export const useGalleryManager = ({
   containerRef: providedRef,
 }: GalleryManagerProps) => {
   const router = useRouter()
+  const { startRouteTransition } = useRouteTransition()
   const { selected, setSelection, count } = useSelection()
 
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null)
@@ -185,6 +186,7 @@ export const useGalleryManager = ({
   // Keyboard Navigation
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      if (e.defaultPrevented) return
       if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return
       if (!docs?.length) return
 
@@ -241,12 +243,11 @@ export const useGalleryManager = ({
         return
       } else if (e.key === 'Enter') {
         const doc = docs[current]
-        if (current !== null) {
-          if (doc.href) {
-            router.push(doc.href)
-          } else if (slug) {
-            router.push(`/admin/collections/${slug}/${doc.id}`)
-          }
+        const href = doc.href || (slug ? `/admin/collections/${slug}/${doc.id}` : undefined)
+        if (href) {
+          // Avoid also activating the focused link and navigating twice.
+          e.preventDefault()
+          startRouteTransition(() => router.push(href))
         }
         return
       }
@@ -258,7 +259,7 @@ export const useGalleryManager = ({
         setLastClickedIndex(nextIndex)
       }
     },
-    [docs, slug, columns, calculateNextIndex, handleItemSelection, router],
+    [docs, slug, columns, calculateNextIndex, handleItemSelection, router, startRouteTransition],
   )
 
   // Attach keydown listener automatically

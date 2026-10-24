@@ -1,5 +1,6 @@
-import { Button, CheckboxInput, ShimmerEffect } from '@payloadcms/ui'
+import { Button, CheckboxInput, ShimmerEffect, useRouteTransition } from '@payloadcms/ui'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { memo, useEffect, useRef, useState } from 'react'
 import { DragHandleIcon, EditIcon, ExpandIcon, FileIcon } from '../../../icons'
@@ -31,6 +32,8 @@ export const MediaCard = memo(
     dragListeners,
     isDragging,
   }: ItemProps & { footer?: 'always' | 'hover'; lightboxEnabled?: boolean }) => {
+    const router = useRouter()
+    const { startRouteTransition } = useRouteTransition()
     const linkRef = useRef<HTMLAnchorElement>(null)
     const videoRef = useRef<HTMLVideoElement>(null)
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -251,6 +254,11 @@ export const MediaCard = memo(
                 onSelectionChange(item.id)
               }
               onOnClick(e, index)
+
+              if (!e.defaultPrevented && !e.altKey && e.button === 0 && item.href) {
+                e.preventDefault()
+                startRouteTransition(() => router.push(href))
+              }
             }}
             onMouseDown={(e: React.MouseEvent) => onOnMouseDown(e, item, index)}
             onContextMenu={(e: React.MouseEvent) =>

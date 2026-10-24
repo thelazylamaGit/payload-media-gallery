@@ -2,6 +2,74 @@ import { expect, test } from '@playwright/test'
 
 test.describe.configure({ mode: 'serial' })
 
+for (const activation of ['click', 'Enter'] as const) {
+  test(`gallery ${activation} navigation shows Payload progress`, async ({ page }) => {
+    await page.goto('/admin/login')
+    await page.fill('#field-email', 'dev@payloadcms.com')
+    await page.fill('#field-password', 'test')
+    await page.click('.form-submit button')
+    await expect(page).toHaveTitle(/Dashboard/)
+    await page.goto('/admin/collections/practitioners')
+    const link = page.getByRole('gridcell', { name: 'Dr Jane', exact: true }).locator('a')
+    const href = await link.getAttribute('href')
+    expect(href).toBeTruthy()
+
+    // Hold the destination response so the transition remains observable even locally.
+    let releaseNavigation = () => {}
+    const navigationGate = new Promise<void>((resolve) => {
+      releaseNavigation = resolve
+    })
+    let navigationRequests = 0
+    await page.route(`${href}*`, async (route) => {
+      navigationRequests++
+      await navigationGate
+      await route.continue()
+    })
+
+    try {
+      if (activation === 'click') {
+        await link.click({ noWaitAfter: true })
+      } else {
+        await link.focus()
+        await page.keyboard.press('Enter')
+      }
+      await expect(page.locator('.progress-bar')).toBeVisible()
+    } finally {
+      releaseNavigation()
+    }
+    await expect(page).toHaveURL(new RegExp(`${href}$`))
+    await expect(page.locator('input[name="name"]')).toHaveValue('Dr Jane')
+    await expect(page.locator('.progress-bar')).toHaveCount(0)
+    expect(navigationRequests).toBe(1)
+  })
+}
+
+test('gallery selection clicks do not navigate or show progress', async ({ page }) => {
+  await page.goto('/admin/login')
+  await page.fill('#field-email', 'dev@payloadcms.com')
+  await page.fill('#field-password', 'test')
+  await page.click('.form-submit button')
+  await expect(page).toHaveTitle(/Dashboard/)
+  await page.goto('/admin/collections/practitioners')
+  const jane = page.getByRole('gridcell', { name: 'Dr Jane', exact: true })
+  const placeholder = page.getByRole('gridcell', { name: 'Dr Placeholder', exact: true })
+  await expect(jane).toBeVisible()
+  await expect(page.locator('.progress-bar')).toHaveCount(0)
+  for (const modifier of ['Control', 'Meta', 'Shift'] as const) {
+    await jane.locator('a').click({ modifiers: [modifier] })
+    await expect(jane).toHaveAttribute('aria-selected', 'true')
+    await expect(page).toHaveURL(/\/admin\/collections\/practitioners(?:\?|$)/)
+    await expect(page.locator('.progress-bar')).toHaveCount(0)
+    await jane.locator('a').click({ modifiers: ['Control'] })
+    await expect(jane).toHaveAttribute('aria-selected', 'false')
+  }
+  await jane.locator('a').click({ modifiers: ['Control'] })
+  await placeholder.locator('a').click()
+  await expect(placeholder).toHaveAttribute('aria-selected', 'true')
+  await expect(page).toHaveURL(/\/admin\/collections\/practitioners(?:\?|$)/)
+  await expect(page.locator('.progress-bar')).toHaveCount(0)
+})
+
 // this is an example Playwright e2e test
 test('should navigate to media collection', async ({ page }) => {
   await page.goto('/admin')
