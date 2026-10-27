@@ -67,14 +67,19 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
   const PREFERENCE_KEY = `payload-${slug}-view`
 
   const { getPreference, setPreference } = usePreferences()
-  const { data: listData, isGroupingBy } = useListQuery()
+  const { data: listData } = useListQuery()
+  // Grouped server renders send one Table per group. Trust that over the query's `isGroupingBy`,
+  // which flips immediately while the previous server render (and its data) is still shown.
+  const isGroupingBy = Array.isArray(props.Table)
 
   const { config } = useConfig()
   const mapDocs = useCallback(
     (docs: GalleryDocument[]) =>
-      docs.map((doc) =>
-        mapDocumentToMediaItem(doc, slug, props.collectionOptions, config.routes.admin),
-      ),
+      docs
+        .filter((doc) => doc?.id != null)
+        .map((doc) =>
+          mapDocumentToMediaItem(doc, slug, props.collectionOptions, config.routes.admin),
+        ),
     [slug, props.collectionOptions, config.routes.admin],
   )
   // When grouping, `listData.docs` only holds one placeholder per group; real docs live in each group's Table.

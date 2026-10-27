@@ -51,6 +51,7 @@ const buildConfigWithMemoryDB = async () => {
     collections: [
       {
         slug: 'media',
+        admin: { groupBy: true },
         folders: true,
         orderable: true,
         upload: {
@@ -72,7 +73,12 @@ const buildConfigWithMemoryDB = async () => {
       {
         slug: 'practitioners',
         orderable: true,
-        admin: { useAsTitle: 'name', defaultColumns: ['name'], enableListViewSelectAPI: true },
+        admin: {
+          useAsTitle: 'name',
+          defaultColumns: ['name'],
+          enableListViewSelectAPI: true,
+          groupBy: true,
+        },
         fields: [
           { name: 'name', type: 'text', required: true },
           { name: 'specialty', type: 'text' },

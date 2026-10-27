@@ -51,4 +51,23 @@ describe('replaceGroupTables', () => {
     expect(isValidElement(result)).toBe(true)
     expect(replaceGroupTables(null, () => 'replaced')).toBeNull()
   })
+
+  it('unwraps lazy (Flight) nodes and keeps replacing inside them', () => {
+    const lazy = (value: unknown) => ({
+      $$typeof: Symbol.for('react.lazy'),
+      _payload: value,
+      _init: (payload: unknown) => payload,
+    })
+    const tree = [lazy(group('a', [{ id: 1 }]))] as unknown as ReactElement[]
+    const result = replaceGroupTables(tree, (docs) => createElement(Gallery, { docs })) as {
+      key: string
+      type: (props: unknown) => ReactElement<{ children: ReactElement<Props> }>
+      props: unknown
+    }[]
+
+    expect(result[0].key).toBe('lazy-0')
+    const wrap = result[0].type(result[0].props)
+    const [, gallery] = wrap.props.children.props.children
+    expect(gallery.type).toBe(Gallery)
+  })
 })

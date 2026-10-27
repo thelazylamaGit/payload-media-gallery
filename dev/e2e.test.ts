@@ -202,3 +202,44 @@ test('long subtitles truncate without squeezing the title off a narrow card', as
     await page.request.delete(`/api/practitioners/${doc.id}`)
   }
 })
+
+test('gallery layouts render inside groupBy groups and clearing groupBy is clean', async ({
+  page,
+}) => {
+  const keyErrors: string[] = []
+  page.on('console', (message) => {
+    if (message.type() === 'error' && message.text().includes('unique "key"'))
+      keyErrors.push(message.text())
+  })
+  await page.goto('/admin/login')
+  await page.fill('#field-email', 'dev@payloadcms.com')
+  await page.fill('#field-password', 'test')
+  await page.click('.form-submit button')
+  await expect(page).toHaveTitle(/Dashboard/)
+  await page.goto('/admin/collections/practitioners?groupBy=specialty')
+
+  const groups = page.locator('.table-wrap--group-by')
+  await expect(groups).toHaveCount(2)
+  await expect(groups.locator('.group-by-header__heading')).toHaveText([
+    'Dentistry',
+    'General practice',
+  ])
+  for (const layout of ['Justified', 'Grid', 'Masonry']) {
+    await page.getByRole('button', { name: `Switch to ${layout} view` }).click()
+    await expect(groups.locator('.media-gallery-grid, .media-gallery-masonry')).toHaveCount(2)
+    await expect(groups.locator('table')).toHaveCount(0)
+    await expect(
+      groups.nth(0).getByRole('gridcell', { name: 'Dr Jane', exact: true }),
+    ).toBeVisible()
+    await expect(
+      groups.nth(1).getByRole('gridcell', { name: 'Dr Placeholder', exact: true }),
+    ).toBeVisible()
+  }
+
+  await page.locator('#toggle-group-by').click()
+  await page.locator('.group-by-builder__clear-button').click()
+  await expect(groups).toHaveCount(0)
+  await expect(page.getByRole('gridcell', { name: 'Dr Jane', exact: true })).toBeVisible()
+  await expect(page.getByRole('gridcell', { name: 'Dr Placeholder', exact: true })).toBeVisible()
+  expect(keyErrors).toEqual([])
+})
