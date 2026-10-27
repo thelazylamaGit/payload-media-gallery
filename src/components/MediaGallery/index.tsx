@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ListViewIcon } from '../../icons'
+import { replaceGroupTables } from '../../utils/groupBy'
 import { type GalleryDocument, mapDocumentToMediaItem } from '../../utils/mapDocument'
 import type { ViewType } from '../ui/Layouts/registry'
 import { layoutRegistry } from '../ui/Layouts/registry'
@@ -66,17 +67,31 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
   const PREFERENCE_KEY = `payload-${slug}-view`
 
   const { getPreference, setPreference } = usePreferences()
-  const { data: listData } = useListQuery()
+  const { data: listData, isGroupingBy } = useListQuery()
 
   const { config } = useConfig()
-  const galleryItems: MediaItem[] = useMemo(() => {
-    return (
-      (listData?.docs as GalleryDocument[] | undefined)?.map((doc) =>
+  const mapDocs = useCallback(
+    (docs: GalleryDocument[]) =>
+      docs.map((doc) =>
         mapDocumentToMediaItem(doc, slug, props.collectionOptions, config.routes.admin),
-      ) || []
-    )
-  }, [listData?.docs, slug, props.collectionOptions, config.routes.admin])
-  const lightboxItems = useMemo(() => galleryItems.filter((item) => !!item.src), [galleryItems])
+      ),
+    [slug, props.collectionOptions, config.routes.admin],
+  )
+  // When grouping, `listData.docs` only holds one placeholder per group; real docs live in each group's Table.
+  const galleryItems: MediaItem[] = useMemo(
+    () => (isGroupingBy ? [] : mapDocs((listData?.docs as GalleryDocument[] | undefined) || [])),
+    [isGroupingBy, listData?.docs, mapDocs],
+  )
+  // Keep group item arrays stable across renders so layouts don't reset their optimistic state.
+  const groupItemsCache = useMemo(() => new WeakMap<object, MediaItem[]>(), [mapDocs])
+  const getGroupItems = (docs: Record<string, unknown>[]) => {
+    let items = groupItemsCache.get(docs)
+    if (!items) {
+      items = mapDocs(docs as GalleryDocument[])
+      groupItemsCache.set(docs, items)
+    }
+    return items
+  }
 
   const collectionLabel = useMemo(() => {
     const coll = config.collections.find((c) => c.slug === slug)
@@ -107,6 +122,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
 
   const [viewType, setViewType] = useState<ViewType>(props.defaultView || 'justified')
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [lightboxItems, setLightboxItems] = useState<MediaItem[]>([])
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
@@ -206,7 +222,38 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
   }
 
   const ActiveLayout = viewType !== 'list' ? layoutRegistry[viewType]?.component : null
-  const TableSlot = (viewType !== 'list' ? null : props.Table) as React.ReactNode
+
+  const renderLayout = (items: MediaItem[]) =>
+    ActiveLayout && (
+      <ActiveLayout
+        items={items}
+        onQuickEdit={props.edit !== false ? handleQuickEdit : undefined}
+        onLightbox={
+          props.lightbox !== false
+            ? (index) => {
+                const withSource = items.filter((item) => !!item.src)
+                const lightboxIndex = withSource.indexOf(items[index])
+                if (lightboxIndex < 0) return
+                setLightboxItems(withSource)
+                setLightboxIndex(lightboxIndex)
+                setLightboxOpen(true)
+              }
+            : undefined
+        }
+        handleSelection={resolvedSelectionHandler}
+        footer={availableViews.find((v) => v.slug === viewType)?.footer}
+        alwaysShowTitle={props.collectionOptions?.alwaysShowTitle}
+        collectionLabel={collectionLabel}
+        collectionSlug={slug}
+      />
+    )
+
+  let TableSlot: React.ReactNode = null
+  if (!ActiveLayout) TableSlot = props.Table as React.ReactNode
+  else if (isGroupingBy)
+    TableSlot = replaceGroupTables(props.Table as React.ReactNode, (docs) =>
+      renderLayout(getGroupItems(docs)),
+    )
 
   return (
     <React.Fragment>
@@ -216,27 +263,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = (props) => {
         BeforeListTable={
           <React.Fragment>
             {props.BeforeListTable}
-            {viewType !== 'list' && ActiveLayout && (
-              <ActiveLayout
-                items={galleryItems}
-                onQuickEdit={props.edit !== false ? handleQuickEdit : undefined}
-                onLightbox={
-                  props.lightbox !== false
-                    ? (index) => {
-                        const lightboxIndex = lightboxItems.indexOf(galleryItems[index])
-                        if (lightboxIndex < 0) return
-                        setLightboxIndex(lightboxIndex)
-                        setLightboxOpen(true)
-                      }
-                    : undefined
-                }
-                handleSelection={resolvedSelectionHandler}
-                footer={availableViews.find((v) => v.slug === viewType)?.footer}
-                alwaysShowTitle={props.collectionOptions?.alwaysShowTitle}
-                collectionLabel={collectionLabel}
-                collectionSlug={slug}
-              />
-            )}
+            {!isGroupingBy && renderLayout(galleryItems)}
           </React.Fragment>
         }
         Table={TableSlot}
